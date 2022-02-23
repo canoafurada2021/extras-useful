@@ -1,0 +1,129 @@
+class HomePage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider<HomePageControler>(
+        create: (_) => HomePageControler(),
+        child: Consumer(
+          builder: (context, value, child) {
+            return Scaffold(
+              appBar: AppBar(
+                backgroundColor: const Color.fromRGBO(181, 113, 245, 1),
+                elevation: 5.0,
+                foregroundColor: Colors.black,
+                centerTitle: true,
+                leading: GestureDetector(
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(
+                        builder: (context) => Grid(item: Items())));
+                  },
+                  child: const Icon(
+                    Icons.format_list_bulleted,
+                    size: 30,
+                  ),
+                ),
+                title: const Text("Mais Vendidos"),
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(15),
+                  ),
+                ),
+                bottom: const PreferredSize(
+                  child: Text(
+                    "Entrega em 80-90 min",
+                  ),
+                  preferredSize: Size.fromHeight(0),
+),
+                actions: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 20.0),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const carrinhoPage()));
+                      },
+                      child: const Icon(
+                        Icons.shopping_cart,
+                        size: 30,
+                      ),
+                    ),
+                  )
+                ],
+              ),
+              body: PageView(
+                children: [
+                  FutureBuilder<List<Items>>(
+                      future: getProducts(),
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return const Center(
+                            child: Text("Error while loading products"),
+                          );
+                        }
+                        if (snapshot.hasData) {
+                          final List<Items> items = snapshot.data!;
+                          return ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              final Items item = items[index];
+                              return Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(width: 1, color: const Color
+                                        .fromRGBO(181, 113, 245, 1),),
+                                    borderRadius: const BorderRadius.all(Radius
+                                        .circular(8)),
+                                  ),
+
+                                  margin: const EdgeInsets.all(10),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: ListTile(
+                                      leading: const CircleAvatar(
+                                        backgroundColor: Colors.transparent,
+                                      ),
+                                      title: Text(item.name),
+                                      trailing: SizedBox(child: Image.network(item.image,height: 100, width: 100,)),
+                                      onTap: () {
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => SecondPage(item)));
+                                      },
+                                    )
+                                    ,
+                                  )
+                              );
+                            },
+                          );
+                        }
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }),
+                  const Historic(),
+                  const Search(),
+                ],
+              ),
+              bottomNavigationBar: BottomNavigationBar(
+                items: const <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+                  BottomNavigationBarItem(
+                      icon: Icon(Icons.wysiwyg), label: 'Historic'),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.search),
+                    label: 'Search',
+                  ),
+                ],
+              ),
+            );
+          }
+        ),
+    );
+  }
+}
+
+class HomePageControler extends ChangeNotifier {
+  int numero = 5;
+}
