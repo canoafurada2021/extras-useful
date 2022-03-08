@@ -1,0 +1,158 @@
+///class for the listj
+
+class QuantityProduct extends ChangeNotifier {
+  void upload;
+  final List<Cartmodel> carrinho = HomePage.cartItems;
+
+  ///increase quantity
+  void increaseQuantity(Cartmodel product) {
+    // setState(() {
+    product.quantity++;
+  }
+
+///
+  void decreaseQuantity(Cartmodel product) {
+    if (product.quantity > 1) {
+      // setState(() {
+      product.quantity--;
+    }
+  }else {
+  _removeProduct(product);
+  }
+  void _removeProduct(Cartmodel product) {
+    //setState(() {
+    HomePage.cartItems.remove(product);
+    widget.upload();
+  }
+}
+
+
+
+class CartList extends StatelessWidget{
+  ///function to upload the page
+
+
+  ///key for the list
+   CartList({Key? key}) : super(key: key);
+
+
+  ///Final list model
+
+
+  ///numberformat
+  final valueFormatting = NumberFormat.currency(locale: 'pt_BR', symbol: 'R\$');
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<QuantityProduct>(
+      builder: (context,state, child) {
+        return ListView.builder(
+          itemCount: state.carrinho.length,
+          itemBuilder: (context, indice) {
+            var item = state.carrinho[indice];
+            var product = item.product;
+            return Container(
+              height: 120,
+              margin: const EdgeInsets.only(top: 5, left: 4, right: 4),
+              child: Card(
+                child: Row(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(left: 25, right: 25),
+                      height: 70,
+                      width: 70,
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: Image.network(
+                              product.image,
+                              height: 60,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(
+                      width: 180,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product.name,
+                            style: GoogleFonts.sarabun(fontSize: 18),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                valueFormatting.format(product.price),
+                                style: GoogleFonts.sarabun(fontSize: 18),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Text(
+                                '${item.quantity}',
+                                style: GoogleFonts.sarabun(fontSize: 18),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              GestureDetector(
+                                onTap: () => state.decreaseQuantity(item),
+                                child: Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  child: const Icon(
+                                    Icons.remove_circle,
+                                    size: 24,
+                                    color: Colors.red,
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () =>
+                                        state.increaseQuantity(item),
+                                    child: Container(
+                                      margin: const EdgeInsets.only(bottom: 10),
+                                      child: Column(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.start,
+                                        children: const [
+                                          Icon(
+                                            Icons.add_circle,
+                                            size: 24,
+                                            color: Colors.purple,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      }
+    );
+  }
+
+
+
+}
+
