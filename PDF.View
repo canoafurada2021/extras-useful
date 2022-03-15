@@ -1,0 +1,103 @@
+import 'dart:io';
+import 'package:advance_pdf_viewer/advance_pdf_viewer.dart';
+import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/widgets.dart' as pdfLib;
+import 'package:share_extend/share_extend.dart';
+
+import '../Models/purchase_model.dart';
+
+///
+
+class ViewPdf extends StatefulWidget {
+  const ViewPdf(this.path, this.purchase);
+
+  final String path;
+   final Purchase purchase;
+
+  creatPdf(context, quantidade, hora, data, precoTotal) async {
+    final pdf = pdfLib.Document(deflate: zlib.encode);
+
+    pdf.addPage(
+      pdfLib.MultiPage(
+        build: (context) => [
+          pdfLib.Table.fromTextArray(
+            data: <List<String>>[
+              <String>['quantidade, hora, data, preço total'],
+              [
+                purchase.quantidade.toString(),
+                purchase.hora.toString(),
+                purchase.data,
+                purchase.precoTotal.toString(),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+    final dir = (await getApplicationDocumentsDirectory()).path;
+
+    final path = '$dir/pdfExample.pdf';
+    final file = File(path);
+    file.writeAsBytesSync(await pdf.save());
+
+    Navigator.of(context).push(MaterialPageRoute(
+        builder: (_) => ViewPdf(
+              path, purchase
+            ),),);
+  }
+
+  @override
+  _ViewPdfState createState() => _ViewPdfState();
+}
+
+class _ViewPdfState extends State<ViewPdf> {
+  late PDFDocument _doc;
+  late bool _loading;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _initPdf();
+  }
+
+  _initPdf() async {
+    setState(() {
+      _loading = true;
+    });
+    final doc = await PDFDocument.fromAsset(widget.path);
+    setState(() {
+      _doc = doc;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text('Flutter PDF'),
+          actions: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: IconButton(
+                  icon: const Icon(
+                    Icons.share,
+                    color: Colors.white,
+                  ),
+                  iconSize: 30,
+                  onPressed: () {
+                    ShareExtend.share(widget.path, "file",
+                        sharePanelTitle: "Enviar PDF", subject: "example-pdf");
+                  }),
+            )
+          ],
+        ),
+        body: _loading
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : PDFViewer(document: _doc));
+  }
+}
