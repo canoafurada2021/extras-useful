@@ -1,0 +1,119 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../Models/cart_model.dart';
+import '../Models/purchase_model.dart';
+import '../models/product_model.dart';
+import '../providers/cart_products.dart';
+import '../providers/purchase_repository.dart';
+import 'home_page.dart';
+
+///
+class FinalizePurchase extends StatelessWidget {
+  ///
+  FinalizePurchase({
+    Key? key,
+    required List<Cartmodel> cartmodel,
+  }) : super(key: key);
+
+  ///final to the purchasse
+
+  final List<Cartmodel> cart = HomePage.cartItems;
+
+  ///date format for hours
+  final formatter = DateFormat("HH:MM");
+
+  ///
+  final valueFormatting = NumberFormat.currency(locale: 'pt_BR', symbol: "R\$");
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer2<CartProducts, PurchaseRepository>(
+      builder: (context, value, state, child) {
+        final totalValue = value.calculatetotal();
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text("Finalizando a compra"),
+            backgroundColor: const Color.fromRGBO(181, 113, 245, 1),
+          ),
+          body: ListView.builder(
+            shrinkWrap: true,
+            itemCount: cart.length,
+            itemBuilder: (context, index) {
+              final testee = cart[index];
+              return Card(
+                child: Flex(
+                  direction: Axis.vertical,
+                  children: [
+                    Column(
+                      children: [
+                        Text(
+                          valueFormatting.format(testee.quantity),
+                          style: GoogleFonts.sarabun(fontSize: 24),
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Data ",
+                              style: GoogleFonts.sarabun(
+                                  fontSize: 16, color: Colors.grey),
+                            ),
+                            Text(
+                              testee.product.toString(),
+                              style: GoogleFonts.sarabun(
+                                  fontSize: 16, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Horário: ",
+                              style: GoogleFonts.sarabun(
+                                  fontSize: 16, color: Colors.grey),
+                            ),
+                            Text(
+                              'teste um',
+                              style: GoogleFonts.sarabun(
+                                  fontSize: 16, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Total do pedido ',
+                              style: GoogleFonts.sarabun(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    ElevatedButton(
+                      child: const Text("Adicionando ao histórico"),
+                      onPressed: () {
+                        final purchaseTable = Purchase(
+                          precoTotal: totalValue,
+                          quantidade: value.cartItems.length,
+                          data: DateFormat('dd/MM/yyyy').format(DateTime.now()),
+                          hora: formatter.format(DateTime.now()),
+                        );
+                        state.readPurchase();
+                        Navigator.pop(context);
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
