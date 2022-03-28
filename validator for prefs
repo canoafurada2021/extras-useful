@@ -1,0 +1,6 @@
+  Future<void> getAllSaveData() async {
+    var prefs = await SharedPreferences.getInstance();
+    notifyListeners();
+    validator = prefs.getBool("preferences") ?? true;
+    notifyListeners();
+  }
