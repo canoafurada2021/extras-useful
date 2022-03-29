@@ -1,0 +1,299 @@
+///class of the first page of the app
+class HomePage extends StatelessWidget {
+  ///staticList
+  static List<Cartmodel> cartItems = [];
+
+  ///Items for purchase
+  static List<Purchase> itemsPurchase = [];
+
+  ///constructor of the homepage
+  const HomePage({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => PageChanges(),
+      child: Scaffold(
+        drawer: const NavigationDrawer(),
+        appBar: AppBar(
+          backgroundColor:
+          const Color.fromRGBO(181, 113, 245, 1),
+          elevation: 5.0,
+          foregroundColor: Colors.black,
+          centerTitle: true,
+          title: const Text("Mais Vendidos"),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(15),
+            ),
+          ),
+          bottom: const PreferredSize(
+            child: Text(
+              "Entrega em 80-90 min",
+            ),
+            preferredSize: Size.fromHeight(0),
+          ),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 20.0),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CartPage(),
+                    ),
+                  );
+                },
+                child: const Icon(
+                  Icons.shopping_cart,
+                  size: 30,
+                ),
+              ),
+            ),
+          ],
+        ),
+        body: Consumer<PageChanges>(
+          builder: (context, state, child) {
+            return PageView(
+              controller: state.pageController,
+              onPageChanged: state.pageChanged,
+              children: const [
+                _Text(),
+                Historic(),
+                SearchList(),
+              ],
+            );
+          },
+        ),
+        bottomNavigationBar: Consumer<PageChanges>(
+          builder: (context, state, child) {
+            return BottomNavigationBar(
+              currentIndex: state.bottomSelectedIndex,
+              onTap: state.bottomTapped,
+              unselectedItemColor: Colors.black,
+              items: const <BottomNavigationBarItem>[
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home),
+                  label: 'Home',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.wysiwyg),
+                  label: 'Historic',
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.search),
+                  label: 'Search',
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+
+class _Text extends StatelessWidget {
+  const _Text({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PageChanges>(
+      builder: (context, state, child) {
+        return FutureBuilder<List<Product>>(
+          future: getProducts(),
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return const Center(
+                child: Text("Error while loading products"),
+              );
+            }
+            if (!state.validator) {
+              if (snapshot.hasData) {
+                final items = snapshot.data!;
+                return ListView(
+                  children: [
+                    TextButton.icon(
+                      label: const Text('Mudar padrão'),
+                      icon: const Icon(
+                        Icons.grid_view,
+                        size: 30,
+                      ),
+                      onPressed: () async {
+                        state.setValidator(false);
+                        var prefs =
+                        await SharedPreferences.getInstance();
+                        await prefs.setBool(
+                          'preferences',
+                          state.setValidator(false),
+                        );
+                      },
+                    ),
+                    ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              width: 1,
+                              color: const Color.fromRGBO(
+                                181, 113, 245, 1,),
+                            ),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(8),),
+                          ),
+                          margin: const EdgeInsets.all(15),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: ListTile(
+                              title: Column(
+                                mainAxisAlignment:
+                                MainAxisAlignment.center,
+                                children: [
+                                  Text(item.name),
+                                ],
+                              ),
+                              trailing: const SizedBox(
+                                child: Card(
+                                  child: Icon(Icons.image),
+                                  //Image.network(
+                                  //item.image,
+                                  //fit: BoxFit.fitWidth,
+                                  //alignment: Alignment.center,
+                                  //height: 60,
+                                  //width: 60,
+                                ),
+                              ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        SecondPage(item),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              }
+            } else {
+              if (snapshot.hasData) {
+                final items = snapshot.data!;
+                return ListView(
+                  children: [
+                    TextButton.icon(
+                      label: const Text('Mudar padrão'),
+                      icon: const Icon(
+                        Icons.list,
+                        size: 30,
+                      ),
+                      onPressed: () async {
+                        // FEEDBACK-12
+                        // Este trecho do código deveria estar todo no
+                        // provider, pois é o provider que gerencia o
+                        // estado da tela e neste onPressed o estado
+                        // da tela é alterado.
+                        var prefs =
+                        await SharedPreferences.getInstance();
+                        await prefs.setBool('option', true);
+                        state.setValidator(true);
+                      },
+                    ),
+                    GridView.builder(
+                      gridDelegate:
+                      const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                      ),
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: snapshot.data!.length,
+                      itemBuilder: (context, index) {
+                        final item = items[index];
+                        return Container(
+                          padding: const EdgeInsets.all(8.0),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              width: 1,
+                              color: Colors.purple.shade300,
+                            ),
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(8),
+                            ),
+                          ),
+                          margin: const EdgeInsets.all(10),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      SecondPage(item),
+                                ),
+                              );
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                mainAxisAlignment:
+                                MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    height: 95,
+                                    width: 100,
+                                    child: ClipRRect(
+                                      borderRadius:
+                                      BorderRadius.circular(16),
+                                      child: const Card(
+                                        child: Icon(Icons.image),
+                                        //Image.network(
+                                        //item.image,
+                                        //width: 95.0,
+                                        //height: 95.0,
+                                        //fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                  ),
+                                  Column(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        item.name,
+                                        maxLines: 3,
+                                        style: const TextStyle(
+                                          fontSize: 12,),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                );
+              }
+            }
+            // Grid(item: Items());
+            return const Center(
+              child: CircularProgressIndicator(),
+              // child: CircularProgressIndicator(),
+            );
+          },
+        );
+      }
+    );
+  }
+}
